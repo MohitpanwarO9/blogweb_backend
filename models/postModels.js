@@ -16,9 +16,14 @@ const postSchema = mongoose.Schema({
     coverphoto : {
         type : String,
         required : [true ,"Please add content"]
+    },
+    author : {
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: 'User',
+        required : [true ,"Please add author"]
     }
 },{
-    timestamp : true
-})
+    timepstamp:true
+});
 
 module.exports = mongoose.model("Post" , postSchema);

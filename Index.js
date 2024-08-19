@@ -3,8 +3,7 @@ const app = express();
 const dotenv = require('dotenv').config();
 const cors = require("cors");
 const cookiePareser = require('cookie-parser');
-const multer = require('multer');
-const uploadMiddleware = multer({dest: 'uploads/'});
+
 
 const connectDb = require('./config/dbConnection.js');
 const { use } = require("./routes/userRoutes");
@@ -18,6 +17,7 @@ const corsOptions = {
     optionSuccessStatus:200
 }
 
+app.use('/uploads',express.static(__dirname + '/uploads'));
 app.use(cors(corsOptions));
 connectDb();
 app.use(express.json());
@@ -25,7 +25,7 @@ app.use(cookiePareser());
 
 
 app.use('/user',require("./routes/userRoutes"));
-app.use('/post',uploadMiddleware.single('image'), require('./routes/postRoutes.js'));
+app.use('/post', require('./routes/postRoutes.js'));
 
 app.listen(port,()=>{
     console.log(`server is running on ${port}`);
