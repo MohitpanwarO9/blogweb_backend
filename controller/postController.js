@@ -3,6 +3,7 @@ const Post = require('../models/postModels');
 const dotenv = require('dotenv').config;
 const fs = require('fs');
 const jwt = require('jsonwebtoken');
+const { userInfo } = require("os");
 const secretKey = process.env.SECRETKEY;
 
 const postCreate = asyncHandler(async (req, res) =>{
@@ -69,4 +70,57 @@ const getSpecificPost = asyncHandler(async (req,res)=>{
     }
 })
 
-module.exports = {postCreate, getPost, getSpecificPost};
+const editPost = asyncHandler(async (req,res)=>{
+    const {token} = req.cookies;
+    let checkToken = null;
+    jwt.verify(token,secretKey,{},(err, userInfo)=>{
+        if(err){
+            res.json(400).json("User Not Login");
+        }
+        checkToken = userInfo;
+    })
+    
+    let newPath = null;
+    const postId = req.params.id;
+
+    if(req.file){
+        const {originalname, path} = req.file;
+        const parts = originalname.split('.');
+        const ext = parts[parts.length-1];
+        newPath = path +'.'+ext;
+
+        fs.renameSync(path, newPath);
+    }
+
+    if(checkToken){
+        const {title,summary,content} = req.body;
+        try{
+            if(newPath){
+                const updPost = await Post.findByIdAndUpdate(postId,{
+                    title,
+                    summary,
+                    content,
+                    coverphoto:newPath
+                });
+    
+                res.status(200).json({message:"Updated SuccessFully"});
+            }else{
+                const updPost = await Post.findByIdAndUpdate(postId,{
+                    title,
+                    summary,
+                    content
+                });
+
+                res.status(200).json(updPost);
+            }
+
+        }
+        catch(error){
+            console.log(error);
+            res.status(400).json({message:"diden't get Updated"});
+        }
+    }
+    
+})
+
+module.exports = {postCreate, getPost, getSpecificPost, editPost};
